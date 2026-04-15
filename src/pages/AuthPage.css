@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+}
+
+/* LEFT IMAGE */
+.image-section {
+  flex: 1;
+  background: url("../assets/parking.jpg") no-repeat center center/cover;
+}
+
+/* RIGHT SIDE */
+.form-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f9;
+}
+
+/* CARD STYLE */
+.form-box {
+  width: 360px;
+  padding: 40px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.form-box h1 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #222;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+/* INPUT */
+.form-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.form-box input:focus {
+  border-color: #ff7a00;
+  outline: none;
+}
+
+/* BUTTON */
+.form-box button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: #ff7a00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.form-box button:hover {
+  background: #e66a00;
+}
+
+/* TOGGLE */
+.toggle {
+  margin-top: 15px;
+  font-size: 14px;
+  color: #555;
+  cursor: pointer;
+}
+
+.toggle:hover {
+  color: #ff7a00;
+}

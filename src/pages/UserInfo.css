@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
+.userinfo-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f4f6f9;
+}
+
+/* CARD */
+.userinfo-card {
+  width: 400px;
+  padding: 35px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.userinfo-card h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+/* INPUT */
+.userinfo-card input[type="text"] {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.userinfo-card input:focus {
+  border-color: #ff7a00;
+  outline: none;
+}
+
+/* ROLE */
+.role-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.role-section label {
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* BUTTON */
+.userinfo-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 20px;
+  background: #ff7a00;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.userinfo-card button:hover {
+  background: #e66a00;
+}

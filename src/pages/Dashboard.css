@@ -1,0 +1,104 @@
+/* BACKGROUND */
+.dashboard-bg {
+  min-height: 100vh;
+  background: linear-gradient(
+      rgba(0,0,0,0.6),
+      rgba(0,0,0,0.6)
+    ),
+    url("https://images.unsplash.com/photo-1503376780353-7e6692767b70");
+  background-size: cover;
+  background-position: center;
+  font-family: "Segoe UI", sans-serif;
+  padding: 20px;
+}
+
+/* MAIN CONTAINER */
+.dashboard-container {
+  max-width: 1000px;
+  margin: auto;
+  color: white;
+}
+
+/* TITLE */
+.title {
+  text-align: center;
+  font-size: 32px;
+  margin-bottom: 20px;
+}
+
+/* FILTERS */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.filters input,
+.filters select {
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+/* SLOT GRID */
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+/* SLOT CARD */
+.slot-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+  transition: 0.3s;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.slot-card:hover {
+  transform: scale(1.05);
+}
+
+/* BUTTON */
+button {
+  background: #00c853;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+button:hover {
+  background: #00e676;
+}
+
+/* CANCEL BUTTON */
+.cancel {
+  background: red;
+}
+
+/* BOOKING BOX */
+.booking-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 10px;
+}
+
+/* BOOKING LIST */
+.booking-list {
+  margin-top: 20px;
+}
+
+.booking-item {
+  background: rgba(255,255,255,0.1);
+  padding: 10px;
+  margin-top: 5px;
+  border-radius: 8px;
+}

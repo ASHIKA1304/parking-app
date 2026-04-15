@@ -1,0 +1,92 @@
+/* Page background */
+.addslot-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f5f3ff, #e0e7ff);
+  padding: 20px;
+}
+
+/* Card */
+.addslot-card {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  border-radius: 18px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* Title */
+.addslot-card h1 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  color: #1f2937;
+}
+
+/* Subtitle */
+.addslot-card p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+.addslot-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  outline: none;
+  transition: 0.2s;
+  font-size: 14px;
+}
+
+.addslot-card input:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+}
+
+/* Labels */
+.addslot-card label {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Apartment text */
+.apartment {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 10px;
+}
+
+.apartment span {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+/* Button */
+.addslot-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #7c3aed;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.addslot-card button:hover {
+  background: #6d28d9;
+}
+
+.addslot-card button:disabled {
+  background: #a78bfa;
+  cursor: not-allowed;
+}
