@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { auth } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 import "./BookSlot.css";
 
 const BookSlot = () => {
@@ -13,7 +14,9 @@ const BookSlot = () => {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const [bookings, setBookings] = useState([]); // LOCAL BOOKINGS
+  const [bookings, setBookings] = useState([]);
+
+  const navigate = useNavigate(); // ✅ navigation
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -25,11 +28,10 @@ const BookSlot = () => {
     return () => unsub();
   }, []);
 
-  // ✅ LOCAL SLOTS (no backend)
+  // ✅ LOCAL SLOTS (you can replace with Firebase later)
   const fetchSlots = () => {
     setLoading(true);
 
-    // demo slots (replace later with DB if needed)
     const demoSlots = [
       {
         id: 1,
@@ -82,7 +84,6 @@ const BookSlot = () => {
     const initialPayment = total * 0.3;
     const remainingPayment = total - initialPayment;
 
-    // ✅ LOCAL BOOKING STORAGE
     const newBooking = {
       id: Date.now(),
       user_id: user.uid,
@@ -98,6 +99,9 @@ const BookSlot = () => {
     setBookings([...bookings, newBooking]);
 
     alert("Slot booked successfully!");
+
+    // ✅ AUTO REDIRECT
+    navigate("/dashboard");
 
     setSelectedSlot(null);
     setStartTime("");
@@ -156,10 +160,21 @@ const BookSlot = () => {
           </p>
 
           <button onClick={bookSlot}>Confirm Booking</button>
+
+          {/* ✅ EXTRA BUTTON */}
+          <button
+            style={{
+              marginLeft: "10px",
+              background: "#2196f3",
+            }}
+            onClick={() => navigate("/dashboard")}
+          >
+            Go to Dashboard
+          </button>
         </div>
       )}
 
-      {/* OPTIONAL: show bookings */}
+      {/* BOOKINGS DISPLAY */}
       {bookings.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>My Bookings</h3>

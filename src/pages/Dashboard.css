@@ -1,20 +1,41 @@
 /* BACKGROUND */
 .dashboard-bg {
+  position: relative;
   min-height: 100vh;
-  background: linear-gradient(
-      rgba(0,0,0,0.6),
-      rgba(0,0,0,0.6)
-    ),
-    url("https://images.unsplash.com/photo-1503376780353-7e6692767b70");
-  background-size: cover;
-  background-position: center;
   font-family: "Segoe UI", sans-serif;
   padding: 20px;
+  overflow-x: hidden;
+}
+
+/* BACKGROUND IMAGE */
+.bg-image {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -2;
+}
+
+/* DARK OVERLAY */
+.dashboard-bg::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(0, 0, 0, 0.7),
+    rgba(0, 0, 0, 0.85)
+  );
+  z-index: -1;
 }
 
 /* MAIN CONTAINER */
 .dashboard-container {
-  max-width: 1000px;
+  max-width: 1100px;
   margin: auto;
   color: white;
 }
@@ -22,83 +43,161 @@
 /* TITLE */
 .title {
   text-align: center;
-  font-size: 32px;
-  margin-bottom: 20px;
+  font-size: 38px;
+  margin-bottom: 30px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 🔹 TABS (NEW) */
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.tabs button {
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.tabs button:hover {
+  background: rgba(255,255,255,0.25);
 }
 
 /* FILTERS */
 .filters {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 15px;
+  margin-bottom: 25px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 
 .filters input,
 .filters select {
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  min-width: 150px;
+}
+
+/* SLOT GRID */
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+/* SLOT CARD */
+.slot-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(14px);
+  padding: 20px;
+  border-radius: 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.2);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+.slot-card:hover {
+  transform: translateY(-6px) scale(1.04);
+}
+
+/* SLOT TEXT */
+.slot-card h3 {
+  font-size: 22px;
+  margin-bottom: 10px;
+}
+
+.slot-card p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+/* BUTTON */
+button {
+  background: linear-gradient(135deg, #00c853, #00e676);
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 500;
+  transition: 0.25s;
+}
+
+button:hover {
+  transform: scale(1.06);
+  box-shadow: 0 4px 15px rgba(0,255,100,0.4);
+}
+
+/* CANCEL BUTTON */
+.cancel {
+  background: linear-gradient(135deg, #ff1744, #ff5252);
+}
+
+/* BOOKING BOX */
+.booking-box {
+  margin-top: 30px;
+  padding: 20px;
+  background: rgba(0,0,0,0.75);
+  border-radius: 15px;
+  backdrop-filter: blur(12px);
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* INPUT FIELDS */
+.booking-box input {
+  width: 100%;
+  margin-top: 10px;
   padding: 10px;
   border-radius: 8px;
   border: none;
   outline: none;
 }
 
-/* SLOT GRID */
-.slot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-/* SLOT CARD */
-.slot-card {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  padding: 15px;
-  border-radius: 15px;
-  text-align: center;
-  transition: 0.3s;
-  border: 1px solid rgba(255,255,255,0.2);
-}
-
-.slot-card:hover {
-  transform: scale(1.05);
-}
-
-/* BUTTON */
-button {
-  background: #00c853;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-button:hover {
-  background: #00e676;
-}
-
-/* CANCEL BUTTON */
-.cancel {
-  background: red;
-}
-
-/* BOOKING BOX */
-.booking-box {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(0,0,0,0.7);
-  border-radius: 10px;
-}
-
-/* BOOKING LIST */
-.booking-list {
-  margin-top: 20px;
-}
-
+/* BOOKING ITEMS (NEW) */
 .booking-item {
-  background: rgba(255,255,255,0.1);
-  padding: 10px;
-  margin-top: 5px;
-  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(8px);
+}
+
+/* EMPTY / LOADING TEXT */
+.dashboard-container p {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .title {
+    font-size: 28px;
+  }
+
+  .filters {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tabs {
+    flex-direction: column;
+  }
 }

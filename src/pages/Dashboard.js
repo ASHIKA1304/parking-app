@@ -1,241 +1,237 @@
 import { useEffect, useState } from "react";
-import { auth } from "../firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { auth, db } from "../firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import {
+  collection,
+  onSnapshot,
+  addDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import "./Dashboard.css";
+
+// ✅ IMPORT YOUR IMAGE HERE
+import bg from "../assets/bg.jpg"; // <-- put your image in src/assets/
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
+  const [activeTab, setActiveTab] = useState("browse");
 
   const [slots, setSlots] = useState([]);
-  const [filteredSlots, setFilteredSlots] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [mySlots, setMySlots] = useState([]);
+  const [bookings, setBookings] = useState([]);
 
-  const [maxPrice, setMaxPrice] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-
-  const [bookingSlot, setBookingSlot] = useState(null);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
 
-  const [bookings, setBookings] = useState([]); // LOCAL BOOKINGS
-
+  // 🔐 AUTH
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });
-
-    fetchSlots();
-
     return () => unsub();
   }, []);
 
-  // ✅ LOCAL SLOT DATA (no backend)
-  const fetchSlots = () => {
-    setLoading(true);
-
-    const demoSlots = [
-      {
-        id: 1,
-        slot_number: "A1",
-        price_per_hour: 20,
-        is_active: true,
-        available_to: "2099-12-31",
-        owner_id: "other",
-      },
-      {
-        id: 2,
-        slot_number: "B2",
-        price_per_hour: 30,
-        is_active: true,
-        available_to: "2099-12-31",
-        owner_id: "other",
-      },
-      {
-        id: 3,
-        slot_number: "C3",
-        price_per_hour: 25,
-        is_active: false,
-        available_to: "2024-01-01",
-        owner_id: "other",
-      },
-    ];
-
-    setSlots(demoSlots);
-    setLoading(false);
-  };
-
+  // 🔄 ALL SLOTS (REAL-TIME)
   useEffect(() => {
-    let result = [...slots];
+    const unsub = onSnapshot(collection(db, "slots"), (snap) => {
+      setSlots(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsub();
+  }, []);
 
-    if (maxPrice) {
-      result = result.filter(
-        (s) => s.price_per_hour <= parseFloat(maxPrice)
-      );
-    }
+  // 👤 MY SLOTS
+  useEffect(() => {
+    if (!user) return;
 
-    if (statusFilter === "active") {
-      result = result.filter(
-        (s) => s.is_active && new Date(s.available_to) > new Date()
-      );
-    }
+    const q = query(collection(db, "slots"), where("owner_id", "==", user.uid));
+    const unsub = onSnapshot(q, (snap) => {
+      setMySlots(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
 
-    if (statusFilter === "expired") {
-      result = result.filter(
-        (s) => new Date(s.available_to) <= new Date()
-      );
-    }
+    return () => unsub();
+  }, [user]);
 
-    setFilteredSlots(result);
-  }, [slots, maxPrice, statusFilter]);
+  // 📦 MY BOOKINGS
+  useEffect(() => {
+    if (!user) return;
 
-  const isAvailable = (slot) => {
-    return slot.is_active && new Date(slot.available_to) > new Date();
-  };
+    const q = query(
+      collection(db, "bookings"),
+      where("user_id", "==", user.uid)
+    );
 
+    const unsub = onSnapshot(q, (snap) => {
+      setBookings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+
+    return () => unsub();
+  }, [user]);
+
+  // ⏱️ CALCULATE HOURS
   const calculateHours = () => {
     if (!startTime || !endTime) return 0;
-
-    const start = new Date(startTime).getTime();
-    const end = new Date(endTime).getTime();
-
-    if (end <= start) return 0;
-
-    return (end - start) / (1000 * 60 * 60);
+    return (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60);
   };
 
-  const bookSlot = () => {
-    if (!user) {
-      alert("Please login first");
-      return;
-    }
-
-    if (!bookingSlot) {
-      alert("Select a slot");
-      return;
-    }
+  // 📌 BOOK SLOT
+  const bookSlot = async () => {
+    if (!user) return alert("Login required");
 
     const hours = calculateHours();
+    if (hours <= 0) return alert("Invalid time");
 
-    if (hours <= 0) {
-      alert("Invalid time range");
-      return;
+    try {
+      await addDoc(collection(db, "bookings"), {
+        user_id: user.uid,
+        slot_id: selectedSlot.id,
+        slot_number: selectedSlot.slot_number,
+        start_time: startTime,
+        end_time: endTime,
+        total: hours * selectedSlot.price_per_hour,
+        createdAt: new Date(),
+      });
+
+      alert("Booking successful!");
+      setSelectedSlot(null);
+      setStartTime("");
+      setEndTime("");
+    } catch (err) {
+      alert(err.message);
     }
+  };
 
-    const total = hours * bookingSlot.price_per_hour;
-    const initialPayment = total * 0.3;
-    const remainingPayment = total - initialPayment;
+  // ❌ DELETE SLOT
+  const deleteSlot = async (id) => {
+    await deleteDoc(doc(db, "slots", id));
+  };
 
-    // ✅ LOCAL BOOKING
-    const newBooking = {
-      id: Date.now(),
-      user_id: user.uid,
-      slot_id: bookingSlot.id,
-      slot_number: bookingSlot.slot_number,
-      start_time: startTime,
-      end_time: endTime,
-      total,
-      initial_payment: initialPayment,
-      remaining_payment: remainingPayment,
-    };
-
-    setBookings([...bookings, newBooking]);
-
-    alert("Booking successful!");
-
-    setBookingSlot(null);
-    setStartTime("");
-    setEndTime("");
+  // 🚪 LOGOUT
+  const logout = () => {
+    signOut(auth);
   };
 
   return (
-    <div style={{ maxWidth: "1000px", margin: "auto", padding: "20px" }}>
-      <h1>Parking Dashboard</h1>
+    <div className="dashboard-bg">
 
-      {/* FILTERS */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
-        <input
-          type="number"
-          placeholder="Max Price"
-          value={maxPrice}
-          onChange={(e) => setMaxPrice(e.target.value)}
-        />
+      {/* ✅ BACKGROUND IMAGE */}
+      <img src={bg} className="bg-image" alt="background" />
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-        >
-          <option value="all">All</option>
-          <option value="active">Available</option>
-          <option value="expired">Expired</option>
-        </select>
-      </div>
+      <div className="dashboard-container">
+        <h1 className="title">Parking Dashboard</h1>
 
-      {/* SLOT LIST */}
-      {loading ? (
-        <p>Loading...</p>
-      ) : filteredSlots.length === 0 ? (
-        <p>No slots available</p>
-      ) : (
-        <div style={{ display: "grid", gap: "10px" }}>
-          {filteredSlots.map((slot) => (
-            <div
-              key={slot.id}
-              style={{
-                border: "1px solid gray",
-                padding: "10px",
-              }}
-            >
-              <h3>{slot.slot_number}</h3>
-              <p>₹{slot.price_per_hour}/hr</p>
-
-              {isAvailable(slot) && (
-                <button onClick={() => setBookingSlot(slot)}>
-                  Book Now
-                </button>
-              )}
-            </div>
-          ))}
+        {/* 🔹 TABS */}
+        <div className="tabs">
+          <button onClick={() => setActiveTab("browse")}>Browse</button>
+          <button onClick={() => setActiveTab("myslots")}>My Slots</button>
+          <button onClick={() => setActiveTab("bookings")}>Bookings</button>
+          <button onClick={() => setActiveTab("profile")}>Profile</button>
         </div>
-      )}
 
-      {/* BOOKING UI */}
-      {bookingSlot && (
-        <div style={{ marginTop: "20px", border: "1px solid black", padding: "10px" }}>
-          <h3>Book Slot: {bookingSlot.slot_number}</h3>
+        {/* 🔹 BROWSE */}
+        {activeTab === "browse" && (
+          <div className="slot-grid">
+            {slots.length === 0 ? (
+              <p>No slots available</p>
+            ) : (
+              slots.map((s) => (
+                <div key={s.id} className="slot-card">
+                  <h3>{s.slot_number}</h3>
+                  <p>₹{s.price_per_hour}/hr</p>
+                  <button onClick={() => setSelectedSlot(s)}>
+                    Book Now
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
-          <input
-            type="datetime-local"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-          />
+        {/* 🔹 BOOKING BOX */}
+        {selectedSlot && activeTab === "browse" && (
+          <div className="booking-box">
+            <h3>Booking: {selectedSlot.slot_number}</h3>
 
-          <input
-            type="datetime-local"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
+            <input
+              type="datetime-local"
+              value={startTime}
+              onChange={(e) => setStartTime(e.target.value)}
+            />
 
-          <p>
-            Cost: ₹
-            {calculateHours() * bookingSlot.price_per_hour || 0}
-          </p>
+            <input
+              type="datetime-local"
+              value={endTime}
+              onChange={(e) => setEndTime(e.target.value)}
+            />
 
-          <button onClick={bookSlot}>Confirm Booking</button>
-          <button onClick={() => setBookingSlot(null)}>Cancel</button>
-        </div>
-      )}
-
-      {/* OPTIONAL BOOKINGS DISPLAY */}
-      {bookings.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Your Bookings</h3>
-          {bookings.map((b) => (
-            <p key={b.id}>
-              Slot {b.slot_number} → ₹{b.total}
+            <p>
+              Cost: ₹
+              {calculateHours() * selectedSlot.price_per_hour || 0}
             </p>
-          ))}
-        </div>
-      )}
+
+            <button onClick={bookSlot}>Confirm</button>
+            <button
+              className="cancel"
+              onClick={() => setSelectedSlot(null)}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+
+        {/* 🔹 MY SLOTS */}
+        {activeTab === "myslots" && (
+          <div className="slot-grid">
+            {mySlots.length === 0 ? (
+              <p>No slots added</p>
+            ) : (
+              mySlots.map((s) => (
+                <div key={s.id} className="slot-card">
+                  <h3>{s.slot_number}</h3>
+                  <p>₹{s.price_per_hour}</p>
+
+                  <button
+                    className="cancel"
+                    onClick={() => deleteSlot(s.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* 🔹 BOOKINGS */}
+        {activeTab === "bookings" && (
+          <div>
+            {bookings.length === 0 ? (
+              <p>No bookings yet</p>
+            ) : (
+              bookings.map((b) => (
+                <div key={b.id} className="booking-item">
+                  <p><strong>{b.slot_number}</strong></p>
+                  <p>₹{b.total}</p>
+                  <p>{b.start_time} → {b.end_time}</p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* 🔹 PROFILE */}
+        {activeTab === "profile" && user && (
+          <div className="booking-box">
+            <h3>User Profile</h3>
+            <p>Email: {user.email}</p>
+
+            <button onClick={logout}>Logout</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
