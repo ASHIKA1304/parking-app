@@ -15,7 +15,7 @@ const Dashboard = () => {
   const [bookings, setBookings] = useState([]);
   const [filter, setFilter] = useState("all");
 
-  // ✅ NEW: store payment method per booking
+  // ✅ store payment method per booking
   const [paymentMethods, setPaymentMethods] = useState({});
 
   const navigate = useNavigate();
@@ -46,9 +46,9 @@ const Dashboard = () => {
     });
 
     return () => unsubAuth();
-  }, []);
+  }, [navigate]);
 
-  // ✅ HANDLE METHOD CHANGE PER BOOKING
+  // ✅ HANDLE METHOD CHANGE
   const handleMethodChange = (id, value) => {
     setPaymentMethods((prev) => ({
       ...prev,
@@ -90,7 +90,7 @@ const Dashboard = () => {
     0
   );
 
-  // ✅ PAY REMAINING WITH METHOD
+  // ✅ PAY REMAINING
   const payRemaining = async (id, total) => {
     try {
       const method = paymentMethods[id] || "UPI";
@@ -205,12 +205,22 @@ const Dashboard = () => {
         )}
       </div>
 
-      <button
-        className="back-btn"
-        onClick={() => navigate("/bookslot")}
-      >
-        Book New Slot
-      </button>
+      {/* ✅ ACTION BUTTONS */}
+      <div className="dashboard-actions">
+        <button
+          className="back-btn"
+          onClick={() => navigate("/bookslot")}
+        >
+          Book New Slot
+        </button>
+
+        <button
+          className="add-btn"
+          onClick={() => navigate("/addslot")}
+        >
+          ➕ Add Slot
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,102 +1,93 @@
-/* MAIN CONTAINER */
-.bookslot-container {
-  padding: 20px;
-  background: #fff8f2;
+.bookslot-wrapper {
+  padding: 30px;
+  background: #f5f7fb;
+  min-height: 100vh;
+  font-family: "Poppins", sans-serif;
 }
 
-/* TITLE */
-.bookslot-container h1 {
-  color: #ff7a00;
+.title {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-/* SLOT GRID */
+.welcome {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #555;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 25px;
+}
+
 .slot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.slot-card {
+  background: white;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.slot-card:hover {
+  transform: translateY(-5px);
+}
+
+.slot-card.selected {
+  border: 2px solid ff7a00;
+}
+
+.right {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  min-height: 500px;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 15px;
 }
 
-/* SLOT CARD */
-.slot-card {
-  border: 2px solid #eee;
-  padding: 15px;
-  border-radius: 12px;
-  width: 150px;
-  cursor: pointer;
-  transition: 0.3s;
-  background: white;
+.info-card,
+.price-details,
+.payment-box {
+  background: #f1f1f1;
+  padding: 10px;
+  border-radius: 8px;
 }
 
-/* HOVER EFFECT */
-.slot-card:hover {
-  border-color: #ff7a00;
-  transform: scale(1.05);
-}
-
-/* SELECTED SLOT */
-.slot-card.selected {
-  border: 2px solid #ff7a00;
-  background: #fff2e6;
-}
-
-/* BOOKING FORM */
-.booking-form {
-  margin-top: 20px;
-  padding: 20px;
-  border-radius: 12px;
-  background: #fff2e6;
-  border: 1px solid #ff7a00;
-}
-
-/* LABELS */
-.booking-form label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
-  color: #333;
-}
-
-/* INPUTS */
-.booking-form input {
+.input-box input {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
 }
 
-/* BUTTONS */
-.booking-form button {
-  margin-top: 15px;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 8px;
-  background: #ff7a00;
+button {
+  padding: 10px;
+  background: ff7a00;
   color: white;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
-  transition: 0.3s;
 }
 
-/* BUTTON HOVER */
-.booking-form button:hover {
-  background: #e66a00;
+.empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: gray;
 }
 
-/* SECOND BUTTON */
-.booking-form button:nth-child(6) {
-  background: #333;
-}
-
-.booking-form button:nth-child(6):hover {
-  background: #555;
-}
-
-/* STATUS COLORS */
-.slot-card p {
-  margin: 5px 0;
-}
-
-/* BOOKINGS SECTION */
-h3 {
-  color: #ff7a00;
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
 }
