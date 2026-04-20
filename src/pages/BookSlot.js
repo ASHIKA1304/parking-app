@@ -35,19 +35,47 @@ const BookSlot = () => {
   // CALCULATE HOURS
   const calculateHours = () => {
     if (!startTime || !endTime) return 0;
+
     const start = new Date(startTime).getTime();
     const end = new Date(endTime).getTime();
+
     if (end <= start) return 0;
-    return (end - start) / (1000 * 60 * 60);
+
+    return ((end - start) / (1000 * 60 * 60)).toFixed(2);
   };
 
-  // BOOK SLOT
+  const hours = parseFloat(calculateHours());
+  const totalPrice = selectedSlot
+    ? hours * selectedSlot.price_per_hour
+    : 0;
+  const advance = totalPrice * 0.3;
+
+  // BOOK SLOT (FINAL VALIDATION)
   const bookSlot = () => {
-    if (!user) return alert("Please login first");
+    if (!user) {
+      alert("Please login first");
+      return;
+    }
+
+    if (!selectedSlot) {
+      alert("Please select a slot");
+      return;
+    }
+
+    if (!startTime || !endTime) {
+      alert("Please select start and end time");
+      return;
+    }
+
+    if (hours <= 0) {
+      alert("End time must be after start time");
+      return;
+    }
 
     alert("Booking successful!");
     navigate("/dashboard");
 
+    // reset
     setSelectedSlot(null);
     setStartTime("");
     setEndTime("");
@@ -86,7 +114,7 @@ const BookSlot = () => {
           )}
         </div>
 
-        {/* RIGHT SIDE (FULL PANEL) */}
+        {/* RIGHT SIDE */}
         <div className="right">
           {selectedSlot ? (
             <>
@@ -97,12 +125,14 @@ const BookSlot = () => {
                 <p><strong>Rate:</strong> ₹{selectedSlot.price_per_hour}/hr</p>
               </div>
 
+              {/* INPUTS */}
               <div className="input-box">
                 <label>Start Time</label>
                 <input
                   type="datetime-local"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
+                  required
                 />
               </div>
 
@@ -112,33 +142,47 @@ const BookSlot = () => {
                   type="datetime-local"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
+                  required
                 />
               </div>
 
+              {/* ERROR MESSAGE */}
+              {startTime && endTime && hours <= 0 && (
+                <p style={{ color: "red" }}>
+                  End time must be after start time
+                </p>
+              )}
+
+              {/* PRICE */}
               <div className="price-details">
-                <p>Hours: {calculateHours()}</p>
-                <h3>
-                  ₹{calculateHours() * selectedSlot.price_per_hour || 0}
-                </h3>
+                <p>Hours: {hours}</p>
+                <h3>₹{totalPrice.toFixed(2)}</h3>
               </div>
 
+              {/* PAYMENT */}
               <div className="payment-box">
                 <p>Pay now (30%)</p>
-                <h4>
-                  ₹
-                  {(
-                    calculateHours() *
-                    selectedSlot.price_per_hour *
-                    0.3
-                  ).toFixed(0)}
-                </h4>
+                <h4>₹{advance.toFixed(2)}</h4>
               </div>
 
-              <button onClick={bookSlot}>✅ Confirm Booking</button>
+              {/* BUTTON */}
+              <button
+                onClick={bookSlot}
+                disabled={
+                  !selectedSlot ||
+                  !startTime ||
+                  !endTime ||
+                  hours <= 0
+                }
+              >
+                {(!selectedSlot || !startTime || !endTime)
+                  ? "Fill all details"
+                  : "✅ Confirm Booking"}
+              </button>
             </>
           ) : (
             <div className="empty">
-              <p>Select a slot 👈</p>
+              <p style={{ color: "red" }}>Please select a slot 👈</p>
             </div>
           )}
         </div>

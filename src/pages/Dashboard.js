@@ -12,10 +12,13 @@ import "./Dashboard.css";
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
-  const [bookings, setBookings] = useState([]);
-  const [filter, setFilter] = useState("all");
 
-  // ✅ store payment method per booking
+  // ✅ separate states
+  const [myBookings, setMyBookings] = useState([]);
+  const [allBookings, setAllBookings] = useState([]);
+  const [slots, setSlots] = useState([]);
+
+  const [filter, setFilter] = useState("all");
   const [paymentMethods, setPaymentMethods] = useState({});
 
   const navigate = useNavigate();
@@ -27,41 +30,56 @@ const Dashboard = () => {
       } else {
         setUser(u);
 
+        // 🔥 GET ALL BOOKINGS
         const unsubBookings = onSnapshot(
           collection(db, "bookings"),
           (snapshot) => {
-            const data = snapshot.docs
-              .map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              }))
-              .filter((b) => b.user_id === u.uid);
+            const all = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
 
-            setBookings(data);
+            setAllBookings(all);
+
+            // ✅ ONLY CURRENT USER BOOKINGS
+            const mine = all.filter((b) => b.user_id === u.uid);
+            setMyBookings(mine);
           }
         );
 
-        return () => unsubBookings();
+        // 🔥 GET ALL SLOTS
+        const unsubSlots = onSnapshot(
+          collection(db, "slots"),
+          (snapshot) => {
+            const data = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setSlots(data);
+          }
+        );
+
+        return () => {
+          unsubBookings();
+          unsubSlots();
+        };
       }
     });
 
     return () => unsubAuth();
   }, [navigate]);
 
-  // ✅ HANDLE METHOD CHANGE
-  const handleMethodChange = (id, value) => {
-    setPaymentMethods((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
+  // ✅ CHECK IF SLOT IS BOOKED BY ANYONE
+  const isSlotBooked = (slotId) => {
+    return allBookings.some((b) => b.slot_id === slotId);
   };
 
-  // ✅ FILTER LOGIC
+  // ✅ FILTER BOOKINGS (ONLY MY BOOKINGS)
   const getFilteredBookings = () => {
     const now = new Date();
 
     if (filter === "active") {
-      return bookings.filter(
+      return myBookings.filter(
         (b) =>
           new Date(b.start_time) <= now &&
           new Date(b.end_time) >= now
@@ -69,28 +87,35 @@ const Dashboard = () => {
     }
 
     if (filter === "completed") {
-      return bookings.filter(
+      return myBookings.filter(
         (b) => new Date(b.end_time) < now
       );
     }
 
-    return bookings;
+    return myBookings;
   };
 
   const filteredBookings = getFilteredBookings();
 
-  // ✅ TOTALS
-  const totalSpent = bookings.reduce((sum, b) => sum + b.total, 0);
-  const totalPaid = bookings.reduce(
+  // ✅ TOTALS (ONLY MY BOOKINGS)
+  const totalSpent = myBookings.reduce((sum, b) => sum + b.total, 0);
+  const totalPaid = myBookings.reduce(
     (sum, b) => sum + b.initial_payment,
     0
   );
-  const totalPending = bookings.reduce(
+  const totalPending = myBookings.reduce(
     (sum, b) => sum + b.remaining_payment,
     0
   );
 
-  // ✅ PAY REMAINING
+  // PAYMENT
+  const handleMethodChange = (id, value) => {
+    setPaymentMethods((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
   const payRemaining = async (id, total) => {
     try {
       const method = paymentMethods[id] || "UPI";
@@ -102,12 +127,22 @@ const Dashboard = () => {
         payment_status: "completed",
       });
 
-      alert(`✅ Paid using ${method}`);
+      alert(`Paid using ${method}`);
     } catch (err) {
       console.error(err);
       alert("Payment failed");
     }
   };
+
+  // ✅ AVAILABLE SLOTS LOGIC
+  const availableSlots = slots.filter((slot) => {
+    const booked = allBookings.some((b) => b.slot_id === slot.id);
+
+    return (
+      !booked && // not booked by anyone
+      slot.owner_id !== user?.uid // not your own slot
+    );
+  });
 
   return (
     <div className="dashboard-container">
@@ -119,7 +154,7 @@ const Dashboard = () => {
       <div className="summary">
         <div className="card">
           <h3>Total Bookings</h3>
-          <p>{bookings.length}</p>
+          <p>{myBookings.length}</p>
         </div>
 
         <div className="card">
@@ -138,14 +173,15 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* FILTER */}
+      {/* MY BOOKINGS */}
+      <h2>📌 My Bookings</h2>
+
       <div className="filters">
         <button onClick={() => setFilter("all")}>All</button>
         <button onClick={() => setFilter("active")}>Active</button>
         <button onClick={() => setFilter("completed")}>Completed</button>
       </div>
 
-      {/* BOOKINGS */}
       <div className="booking-list">
         {filteredBookings.length === 0 ? (
           <p>No bookings found</p>
@@ -160,21 +196,10 @@ const Dashboard = () => {
               </p>
 
               <p><strong>Total:</strong> ₹{b.total}</p>
-              <p><strong>Paid:</strong> ₹{b.initial_payment}</p>
               <p><strong>Remaining:</strong> ₹{b.remaining_payment}</p>
 
-              {/* STATUS */}
-              {new Date(b.end_time) < new Date() ? (
-                <p className="completed">Completed</p>
-              ) : (
-                <p className="active">Active</p>
-              )}
-
-              {/* PAYMENT */}
               {b.remaining_payment > 0 ? (
-                <div>
-                  <label>Select Payment Method:</label>
-
+                <>
                   <select
                     value={paymentMethods[b.id] || "UPI"}
                     onChange={(e) =>
@@ -186,38 +211,46 @@ const Dashboard = () => {
                     <option value="Cash">Cash</option>
                   </select>
 
-                  <button
-                    onClick={() => payRemaining(b.id, b.total)}
-                  >
+                  <button onClick={() => payRemaining(b.id, b.total)}>
                     Pay Remaining
                   </button>
-                </div>
-              ) : (
-                <>
-                  <p className="paid">✅ Fully Paid</p>
-                  {b.payment_method && (
-                    <p><strong>Method:</strong> {b.payment_method}</p>
-                  )}
                 </>
+              ) : (
+                <p className="paid">Fully Paid</p>
               )}
             </div>
           ))
         )}
       </div>
 
-      {/* ✅ ACTION BUTTONS */}
-      <div className="dashboard-actions">
-        <button
-          className="back-btn"
-          onClick={() => navigate("/bookslot")}
-        >
-          Book New Slot
-        </button>
+      {/* AVAILABLE SLOTS */}
+      <h2>🅿️ Available Slots</h2>
 
-        <button
-          className="add-btn"
-          onClick={() => navigate("/addslot")}
-        >
+      <div className="slot-grid">
+        {availableSlots.length === 0 ? (
+          <p>No available slots</p>
+        ) : (
+          availableSlots.map((slot) => (
+            <div key={slot.id} className="slot-card">
+              <h3>{slot.slotNumber}</h3>
+              <p>₹{slot.pricePerHour}/hr</p>
+              <p>{slot.apartment}</p>
+
+              <button
+                onClick={() =>
+                  navigate("/bookslot", { state: slot })
+                }
+              >
+                Book Now
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* ACTION */}
+      <div className="dashboard-actions">
+        <button onClick={() => navigate("/addslot")}>
           ➕ Add Slot
         </button>
       </div>
