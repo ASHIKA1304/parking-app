@@ -1,113 +1,102 @@
-/* Page container */
+/* MAIN CONTAINER */
 .bookslot-container {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 20px;
+  padding: 20px;
+  background: #fff8f2;
 }
 
-/* Title */
+/* TITLE */
 .bookslot-container h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 25px;
-  color: #111;
+  color: #ff7a00;
 }
 
-/* Slot grid */
+/* SLOT GRID */
 .slot-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 18px;
-  margin-bottom: 30px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-/* Slot card */
+/* SLOT CARD */
 .slot-card {
-  background: #fff;
   border: 2px solid #eee;
-  border-radius: 14px;
-  padding: 18px;
+  padding: 15px;
+  border-radius: 12px;
+  width: 150px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  transition: 0.3s;
+  background: white;
 }
 
+/* HOVER EFFECT */
 .slot-card:hover {
-  transform: translateY(-4px);
-  border-color: #7c3aed;
+  border-color: #ff7a00;
+  transform: scale(1.05);
 }
 
-/* Selected slot */
+/* SELECTED SLOT */
 .slot-card.selected {
-  border-color: #7c3aed;
-  background: #f5f3ff;
+  border: 2px solid #ff7a00;
+  background: #fff2e6;
 }
 
-/* Slot title */
-.slot-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 16px;
-  margin-bottom: 10px;
+/* BOOKING FORM */
+.booking-form {
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 12px;
+  background: #fff2e6;
+  border: 1px solid #ff7a00;
 }
 
-/* Price */
-.slot-price {
-  font-size: 14px;
-  color: #555;
-  display: flex;
-  align-items: center;
-  gap: 5px;
+/* LABELS */
+.booking-form label {
+  display: block;
+  margin-top: 10px;
+  font-weight: bold;
+  color: #333;
 }
 
-/* Booking form */
-.booking-card {
-  background: #fff;
-  padding: 22px;
-  border-radius: 14px;
-  border: 2px solid #eee;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-}
-
-/* Inputs */
-.booking-card input {
+/* INPUTS */
+.booking-form input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 12px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  font-size: 14px;
-  outline: none;
-  transition: 0.2s;
+  padding: 8px;
+  margin-top: 5px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
-.booking-card input:focus {
-  border-color: #7c3aed;
-}
-
-/* Cost text */
-.cost-text {
-  font-size: 14px;
-  margin: 10px 0;
-  color: #444;
-}
-
-/* Button */
-.booking-card button {
-  width: 100%;
-  padding: 12px;
+/* BUTTONS */
+.booking-form button {
+  margin-top: 15px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 10px;
-  background: #7c3aed;
+  border-radius: 8px;
+  background: #ff7a00;
   color: white;
-  font-size: 15px;
-  font-weight: 600;
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.3s;
 }
 
-.booking-card button:hover {
-  background: #6d28d9;
+/* BUTTON HOVER */
+.booking-form button:hover {
+  background: #e66a00;
+}
+
+/* SECOND BUTTON */
+.booking-form button:nth-child(6) {
+  background: #333;
+}
+
+.booking-form button:nth-child(6):hover {
+  background: #555;
+}
+
+/* STATUS COLORS */
+.slot-card p {
+  margin: 5px 0;
+}
+
+/* BOOKINGS SECTION */
+h3 {
+  color: #ff7a00;
 }

@@ -4,7 +4,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background: linear-gradient(135deg, #f5f3ff, #e0e7ff);
+  background: linear-gradient(135deg, #fff4e6, #ffe0cc);
   padding: 20px;
 }
 
@@ -15,7 +15,7 @@
   background: white;
   border-radius: 18px;
   padding: 30px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 30px rgba(255, 122, 0, 0.15);
 }
 
 /* Title */
@@ -23,13 +23,13 @@
   font-size: 26px;
   font-weight: 700;
   margin-bottom: 5px;
-  color: #1f2937;
+  color: #ff7a00;
 }
 
 /* Subtitle */
 .addslot-card p {
   font-size: 14px;
-  color: #6b7280;
+  color: #7a4b2f;
   margin-bottom: 20px;
 }
 
@@ -38,7 +38,7 @@
   width: 100%;
   padding: 12px;
   margin-bottom: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #ffd6b3;
   border-radius: 12px;
   outline: none;
   transition: 0.2s;
@@ -46,25 +46,25 @@
 }
 
 .addslot-card input:focus {
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  border-color: #ff7a00;
+  box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.2);
 }
 
 /* Labels */
 .addslot-card label {
   font-size: 12px;
-  color: #6b7280;
+  color: #7a4b2f;
 }
 
 /* Apartment text */
 .apartment {
   font-size: 12px;
-  color: #6b7280;
+  color: #7a4b2f;
   margin-top: 10px;
 }
 
 .apartment span {
-  color: #7c3aed;
+  color: #ff7a00;
   font-weight: 600;
 }
 
@@ -73,7 +73,7 @@
   width: 100%;
   padding: 12px;
   margin-top: 10px;
-  background: #7c3aed;
+  background: #ff7a00;
   color: white;
   border: none;
   border-radius: 12px;
@@ -83,10 +83,10 @@
 }
 
 .addslot-card button:hover {
-  background: #6d28d9;
+  background: #e66a00;
 }
 
 .addslot-card button:disabled {
-  background: #a78bfa;
+  background: #ffb380;
   cursor: not-allowed;
 }

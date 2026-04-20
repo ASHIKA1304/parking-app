@@ -1,237 +1,216 @@
 import { useEffect, useState } from "react";
 import { auth, db } from "../firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   collection,
   onSnapshot,
-  addDoc,
-  deleteDoc,
   doc,
-  query,
-  where,
+  updateDoc,
 } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import "./Dashboard.css";
-
-// ✅ IMPORT YOUR IMAGE HERE
-import bg from "../assets/bg.jpg"; // <-- put your image in src/assets/
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState("browse");
-
-  const [slots, setSlots] = useState([]);
-  const [mySlots, setMySlots] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [filter, setFilter] = useState("all");
 
-  const [selectedSlot, setSelectedSlot] = useState(null);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  // ✅ NEW: store payment method per booking
+  const [paymentMethods, setPaymentMethods] = useState({});
 
-  // 🔐 AUTH
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
+    const unsubAuth = onAuthStateChanged(auth, (u) => {
+      if (!u) {
+        navigate("/");
+      } else {
+        setUser(u);
+
+        const unsubBookings = onSnapshot(
+          collection(db, "bookings"),
+          (snapshot) => {
+            const data = snapshot.docs
+              .map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }))
+              .filter((b) => b.user_id === u.uid);
+
+            setBookings(data);
+          }
+        );
+
+        return () => unsubBookings();
+      }
     });
-    return () => unsub();
+
+    return () => unsubAuth();
   }, []);
 
-  // 🔄 ALL SLOTS (REAL-TIME)
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "slots"), (snap) => {
-      setSlots(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-    return () => unsub();
-  }, []);
-
-  // 👤 MY SLOTS
-  useEffect(() => {
-    if (!user) return;
-
-    const q = query(collection(db, "slots"), where("owner_id", "==", user.uid));
-    const unsub = onSnapshot(q, (snap) => {
-      setMySlots(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-
-    return () => unsub();
-  }, [user]);
-
-  // 📦 MY BOOKINGS
-  useEffect(() => {
-    if (!user) return;
-
-    const q = query(
-      collection(db, "bookings"),
-      where("user_id", "==", user.uid)
-    );
-
-    const unsub = onSnapshot(q, (snap) => {
-      setBookings(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
-
-    return () => unsub();
-  }, [user]);
-
-  // ⏱️ CALCULATE HOURS
-  const calculateHours = () => {
-    if (!startTime || !endTime) return 0;
-    return (new Date(endTime) - new Date(startTime)) / (1000 * 60 * 60);
+  // ✅ HANDLE METHOD CHANGE PER BOOKING
+  const handleMethodChange = (id, value) => {
+    setPaymentMethods((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
   };
 
-  // 📌 BOOK SLOT
-  const bookSlot = async () => {
-    if (!user) return alert("Login required");
+  // ✅ FILTER LOGIC
+  const getFilteredBookings = () => {
+    const now = new Date();
 
-    const hours = calculateHours();
-    if (hours <= 0) return alert("Invalid time");
+    if (filter === "active") {
+      return bookings.filter(
+        (b) =>
+          new Date(b.start_time) <= now &&
+          new Date(b.end_time) >= now
+      );
+    }
 
+    if (filter === "completed") {
+      return bookings.filter(
+        (b) => new Date(b.end_time) < now
+      );
+    }
+
+    return bookings;
+  };
+
+  const filteredBookings = getFilteredBookings();
+
+  // ✅ TOTALS
+  const totalSpent = bookings.reduce((sum, b) => sum + b.total, 0);
+  const totalPaid = bookings.reduce(
+    (sum, b) => sum + b.initial_payment,
+    0
+  );
+  const totalPending = bookings.reduce(
+    (sum, b) => sum + b.remaining_payment,
+    0
+  );
+
+  // ✅ PAY REMAINING WITH METHOD
+  const payRemaining = async (id, total) => {
     try {
-      await addDoc(collection(db, "bookings"), {
-        user_id: user.uid,
-        slot_id: selectedSlot.id,
-        slot_number: selectedSlot.slot_number,
-        start_time: startTime,
-        end_time: endTime,
-        total: hours * selectedSlot.price_per_hour,
-        createdAt: new Date(),
+      const method = paymentMethods[id] || "UPI";
+
+      await updateDoc(doc(db, "bookings", id), {
+        initial_payment: total,
+        remaining_payment: 0,
+        payment_method: method,
+        payment_status: "completed",
       });
 
-      alert("Booking successful!");
-      setSelectedSlot(null);
-      setStartTime("");
-      setEndTime("");
+      alert(`✅ Paid using ${method}`);
     } catch (err) {
-      alert(err.message);
+      console.error(err);
+      alert("Payment failed");
     }
   };
 
-  // ❌ DELETE SLOT
-  const deleteSlot = async (id) => {
-    await deleteDoc(doc(db, "slots", id));
-  };
-
-  // 🚪 LOGOUT
-  const logout = () => {
-    signOut(auth);
-  };
-
   return (
-    <div className="dashboard-bg">
+    <div className="dashboard-container">
+      <h1>Dashboard</h1>
 
-      {/* ✅ BACKGROUND IMAGE */}
-      <img src={bg} className="bg-image" alt="background" />
+      <p><strong>Email:</strong> {user?.email}</p>
 
-      <div className="dashboard-container">
-        <h1 className="title">Parking Dashboard</h1>
-
-        {/* 🔹 TABS */}
-        <div className="tabs">
-          <button onClick={() => setActiveTab("browse")}>Browse</button>
-          <button onClick={() => setActiveTab("myslots")}>My Slots</button>
-          <button onClick={() => setActiveTab("bookings")}>Bookings</button>
-          <button onClick={() => setActiveTab("profile")}>Profile</button>
+      {/* SUMMARY */}
+      <div className="summary">
+        <div className="card">
+          <h3>Total Bookings</h3>
+          <p>{bookings.length}</p>
         </div>
 
-        {/* 🔹 BROWSE */}
-        {activeTab === "browse" && (
-          <div className="slot-grid">
-            {slots.length === 0 ? (
-              <p>No slots available</p>
-            ) : (
-              slots.map((s) => (
-                <div key={s.id} className="slot-card">
-                  <h3>{s.slot_number}</h3>
-                  <p>₹{s.price_per_hour}/hr</p>
-                  <button onClick={() => setSelectedSlot(s)}>
-                    Book Now
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+        <div className="card">
+          <h3>Total Spent</h3>
+          <p>₹{totalSpent}</p>
+        </div>
 
-        {/* 🔹 BOOKING BOX */}
-        {selectedSlot && activeTab === "browse" && (
-          <div className="booking-box">
-            <h3>Booking: {selectedSlot.slot_number}</h3>
+        <div className="card">
+          <h3>Paid</h3>
+          <p>₹{totalPaid}</p>
+        </div>
 
-            <input
-              type="datetime-local"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
+        <div className="card">
+          <h3>Pending</h3>
+          <p>₹{totalPending}</p>
+        </div>
+      </div>
 
-            <input
-              type="datetime-local"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
+      {/* FILTER */}
+      <div className="filters">
+        <button onClick={() => setFilter("all")}>All</button>
+        <button onClick={() => setFilter("active")}>Active</button>
+        <button onClick={() => setFilter("completed")}>Completed</button>
+      </div>
 
-            <p>
-              Cost: ₹
-              {calculateHours() * selectedSlot.price_per_hour || 0}
-            </p>
+      {/* BOOKINGS */}
+      <div className="booking-list">
+        {filteredBookings.length === 0 ? (
+          <p>No bookings found</p>
+        ) : (
+          filteredBookings.map((b) => (
+            <div key={b.id} className="booking-card">
+              <h3>Slot {b.slot_number}</h3>
 
-            <button onClick={bookSlot}>Confirm</button>
-            <button
-              className="cancel"
-              onClick={() => setSelectedSlot(null)}
-            >
-              Cancel
-            </button>
-          </div>
-        )}
+              <p>
+                {new Date(b.start_time).toLocaleString()} →{" "}
+                {new Date(b.end_time).toLocaleString()}
+              </p>
 
-        {/* 🔹 MY SLOTS */}
-        {activeTab === "myslots" && (
-          <div className="slot-grid">
-            {mySlots.length === 0 ? (
-              <p>No slots added</p>
-            ) : (
-              mySlots.map((s) => (
-                <div key={s.id} className="slot-card">
-                  <h3>{s.slot_number}</h3>
-                  <p>₹{s.price_per_hour}</p>
+              <p><strong>Total:</strong> ₹{b.total}</p>
+              <p><strong>Paid:</strong> ₹{b.initial_payment}</p>
+              <p><strong>Remaining:</strong> ₹{b.remaining_payment}</p>
+
+              {/* STATUS */}
+              {new Date(b.end_time) < new Date() ? (
+                <p className="completed">Completed</p>
+              ) : (
+                <p className="active">Active</p>
+              )}
+
+              {/* PAYMENT */}
+              {b.remaining_payment > 0 ? (
+                <div>
+                  <label>Select Payment Method:</label>
+
+                  <select
+                    value={paymentMethods[b.id] || "UPI"}
+                    onChange={(e) =>
+                      handleMethodChange(b.id, e.target.value)
+                    }
+                  >
+                    <option value="UPI">UPI</option>
+                    <option value="Card">Card</option>
+                    <option value="Cash">Cash</option>
+                  </select>
 
                   <button
-                    className="cancel"
-                    onClick={() => deleteSlot(s.id)}
+                    onClick={() => payRemaining(b.id, b.total)}
                   >
-                    Delete
+                    Pay Remaining
                   </button>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* 🔹 BOOKINGS */}
-        {activeTab === "bookings" && (
-          <div>
-            {bookings.length === 0 ? (
-              <p>No bookings yet</p>
-            ) : (
-              bookings.map((b) => (
-                <div key={b.id} className="booking-item">
-                  <p><strong>{b.slot_number}</strong></p>
-                  <p>₹{b.total}</p>
-                  <p>{b.start_time} → {b.end_time}</p>
-                </div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* 🔹 PROFILE */}
-        {activeTab === "profile" && user && (
-          <div className="booking-box">
-            <h3>User Profile</h3>
-            <p>Email: {user.email}</p>
-
-            <button onClick={logout}>Logout</button>
-          </div>
+              ) : (
+                <>
+                  <p className="paid">✅ Fully Paid</p>
+                  {b.payment_method && (
+                    <p><strong>Method:</strong> {b.payment_method}</p>
+                  )}
+                </>
+              )}
+            </div>
+          ))
         )}
       </div>
+
+      <button
+        className="back-btn"
+        onClick={() => navigate("/bookslot")}
+      >
+        Book New Slot
+      </button>
     </div>
   );
 };
